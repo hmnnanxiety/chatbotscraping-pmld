@@ -45,7 +45,7 @@ except ImportError:
 SUPERSET_DOMAIN = "https://dwh.jogjaprov.go.id"
 GUEST_TOKEN_ENDPOINT = "https://idmc.jogjaprov.go.id/backend/api/v1/superset/guest-token"
 PORTAL_REFERER = "https://idmc.jogjaprov.go.id/"
-REQUEST_TIMEOUT = 15  # seconds
+REQUEST_TIMEOUT = 60  # seconds
 
 # --- Rate-limiting / retry safety net ---------------------------------------
 MIN_REQUEST_INTERVAL = 1.5
@@ -231,6 +231,13 @@ class DWHClient:
 
         return _request_with_backoff(do_request, context=context)
 
+    def _post(self, url: str, *, context: str, **kwargs) -> requests.Response:
+        def do_request() -> requests.Response:
+            self._rate_limiter.wait()
+            return self.session.post(url, timeout=REQUEST_TIMEOUT, **kwargs)
+
+        return _request_with_backoff(do_request, context=context)
+
     def load_base_cookies(self) -> None:
         """Establish portal-wide base session cookies (shared by all dashboards)."""
         print("[auth] Bootstrapping session cookies from portal")
@@ -343,6 +350,30 @@ class DWHClient:
         response.raise_for_status()
         return response
 
+    def _authed_post(self, url: str, dashboard_uuid: str, *, context: str, **kwargs) -> requests.Response:
+        """POST with the Authorization/X-GuestToken headers for one specific dashboard."""
+        token = self.get_guest_token(dashboard_uuid)
+        if not token:
+            raise RuntimeError(f"Could not authenticate for dashboard {dashboard_uuid}.")
+
+        headers = dict(kwargs.pop("headers", {}) or {})
+        headers["Authorization"] = f"Bearer {token}"
+        headers["X-GuestToken"] = token
+
+        response = self._post(url, context=context, headers=headers, **kwargs)
+
+        if response.status_code in (401, 403):
+            print(f"[auth] Got {response.status_code} for {dashboard_uuid[:8]}, refreshing token...")
+            token = self.get_guest_token(dashboard_uuid, force_refresh=True)
+            if not token:
+                raise RuntimeError(f"Re-authentication failed for dashboard {dashboard_uuid}.")
+            headers["Authorization"] = f"Bearer {token}"
+            headers["X-GuestToken"] = token
+            response = self._post(url, context=f"{context}-retry", headers=headers, **kwargs)
+
+        response.raise_for_status()
+        return response
+
     # --- dashboard resolution -------------------------------------------- #
 
     def get_dashboard_info(self, dashboard_uuid: str) -> Dict[str, Any]:
@@ -393,23 +424,65 @@ class DWHClient:
         """
         Fetch actual data rows for one chart.
 
-        Uses the confirmed frontend pattern (captured from real browser
-        traffic): a GET to /api/v1/chart/data with form_data + dashboard_id
-        as query params, scoped to that dashboard's numeric id and its
-        own guest token.
+        Superset's /api/v1/chart/data endpoint requires a full
+        query_context body (datasource + queries, at minimum) — there's
+        no generic way to hand-build that from just a slice_id, since it
+        varies per chart (viz_type, metrics, columns, filters, etc).
+
+        Instead, we fetch the chart's own stored query_context via
+        GET /api/v1/chart/{slice_id} (Superset saves the exact payload
+        the chart's own UI uses to render it) and POST that back
+        almost unchanged, with force=True to bypass Superset's cache.
         """
         info = self.get_dashboard_info(dashboard_uuid)
         numeric_id = info["id"]
 
-        form_data = json.dumps({"slice_id": slice_id})
-        url = (
-            f"{SUPERSET_DOMAIN}/api/v1/chart/data"
-            f"?form_data={urllib.parse.quote(form_data)}"
-            f"&dashboard_id={numeric_id}"
-        )
+        meta_url = f"{SUPERSET_DOMAIN}/api/v1/chart/{slice_id}"
+        meta_response = self._authed_get(meta_url, dashboard_uuid, context="chart-meta")
+        meta = meta_response.json().get("result", {})
+
+        query_context_raw = meta.get("query_context")
+        if not query_context_raw:
+            raise RuntimeError(
+                f"Chart {slice_id}: no stored query_context on this chart "
+                "(it may have never been saved/rendered in the Superset UI, "
+                "so there's no template to replay)."
+            )
+
+        try:
+            body = json.loads(query_context_raw)
+        except (TypeError, json.JSONDecodeError) as e:
+            raise RuntimeError(f"Chart {slice_id}: query_context wasn't valid JSON: {e}") from e
+
+        # Make sure the dashboard context travels with it and bypass Superset's cache.
+        body.setdefault("form_data", {})
+        body["form_data"]["slice_id"] = slice_id
+        body["form_data"]["dashboard_id"] = numeric_id
+        body["force"] = True
+
+        url = f"{SUPERSET_DOMAIN}/api/v1/chart/data"
 
         print(f"[chart] Fetching data for slice_id={slice_id} (dashboard {numeric_id})")
-        response = self._authed_get(url, dashboard_uuid, context="chart-data")
+        try:
+            response = self._authed_post(
+                url,
+                dashboard_uuid,
+                context="chart-data",
+                json=body,
+            )
+        except requests.exceptions.HTTPError as e:
+            # Surface Superset's error body (usually names the missing/invalid
+            # query_context field) instead of just the bare status code.
+            detail = ""
+            if e.response is not None:
+                try:
+                    detail = json.dumps(e.response.json())
+                except ValueError:
+                    detail = e.response.text[:500]
+            raise RuntimeError(
+                f"Chart {slice_id}: chart/data request failed: {e}. Body: {detail}"
+            ) from e
+
         payload = response.json()
 
         results = payload.get("result", [])

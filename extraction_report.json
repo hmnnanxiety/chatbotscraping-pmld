@@ -1,0 +1,32 @@
+{
+  "status": "ok",
+  "started_at": "2026-09-24T02:43:39+00:00",
+  "duration_s": 1188.4,
+  "catalog_size": 95,
+  "attempted": 87,
+  "succeeded": 86,
+  "failed": 1,
+  "skipped_known_bad": [
+    667,
+    1038,
+    1115,
+    1390,
+    1393,
+    1398,
+    1399,
+    1459
+  ],
+  "carried_forward": [],
+  "failures_by_category": {
+    "request_error": 1
+  },
+  "failures": [
+    {
+      "slice_id": 607,
+      "slice_name": "Target dan Realisasi Per Tahun.",
+      "dashboard_name": "Dashboard Pembangunan",
+      "category": "request_error",
+      "message": "404 Client Error: NOT FOUND for url: https://dwh.jogjaprov.go.id/api/v1/chart/607"
+    }
+  ]
+}
