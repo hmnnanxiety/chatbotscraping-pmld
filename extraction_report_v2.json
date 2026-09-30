@@ -1,0 +1,72 @@
+{
+  "started_at": "2026-09-29T12:44:08+00:00",
+  "failures": [
+    {
+      "adapter": "superset:886ade99-a1b9-442b-94cd-8e2e9671c381",
+      "target_id": "superset:886ade99-a1b9-442b-94cd-8e2e9671c381:667",
+      "stage": "extract",
+      "error": "HTTPError HTTP 400"
+    },
+    {
+      "adapter": "superset:49bb9ba6-06b7-4525-9ff7-a78e384e6854",
+      "target_id": "superset:49bb9ba6-06b7-4525-9ff7-a78e384e6854:1394",
+      "stage": "extract",
+      "error": "SSLError"
+    },
+    {
+      "adapter": "superset:49bb9ba6-06b7-4525-9ff7-a78e384e6854",
+      "target_id": "superset:49bb9ba6-06b7-4525-9ff7-a78e384e6854:1398",
+      "stage": "extract",
+      "error": "HTTPError HTTP 400"
+    },
+    {
+      "adapter": "superset:86d8feac-474a-4d74-9928-aaaf034fd1f5",
+      "target_id": "superset:86d8feac-474a-4d74-9928-aaaf034fd1f5:1399",
+      "stage": "extract",
+      "error": "HTTPError HTTP 400"
+    },
+    {
+      "adapter": "superset:f9c8313f-5f64-4517-9720-5ee7689a50f8",
+      "target_id": "superset:f9c8313f-5f64-4517-9720-5ee7689a50f8:1393",
+      "stage": "extract",
+      "error": "HTTPError HTTP 400"
+    },
+    {
+      "adapter": "superset:c333627c-1721-49c7-a6f1-c6369751bd45",
+      "target_id": "superset:c333627c-1721-49c7-a6f1-c6369751bd45:1390",
+      "stage": "extract",
+      "error": "HTTPError HTTP 400"
+    },
+    {
+      "adapter": "superset:6d816cf9-91b5-4711-9b77-6ee93aa7bcca",
+      "stage": "discovery",
+      "error": "CookieConflictError"
+    },
+    {
+      "adapter": "superset:380d5b59-7fad-4d96-9bbc-c0e8c0309e41",
+      "target_id": "superset:380d5b59-7fad-4d96-9bbc-c0e8c0309e41:1459",
+      "stage": "extract",
+      "error": "HTTPError HTTP 400"
+    },
+    {
+      "adapter": "superset:e5f3e11f-f456-4729-aa68-53e53c1e459e",
+      "stage": "discovery",
+      "error": "CookieConflictError"
+    },
+    {
+      "adapter": "cctv_native",
+      "target_id": "cctv_native:cctv-atcs:cameras",
+      "stage": "extract",
+      "error": "SSLError"
+    }
+  ],
+  "succeeded": 73,
+  "metadata_only": 2,
+  "attempted": 81,
+  "content_changed": 73,
+  "metadata_changed": 73,
+  "records": 73,
+  "chunks": 146,
+  "status": "partial",
+  "duration_s": 1288.67
+}
