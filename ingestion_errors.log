@@ -1,0 +1,20 @@
+2026-09-29 19:41:26,518 WARNING etl.main Discovery failed for superset:27b5d07e-111a-449a-84a2-efc3b6cf5fa1: SSLError
+2026-09-29 19:41:47,688 WARNING etl.main Discovery failed for superset:886ade99-a1b9-442b-94cd-8e2e9671c381: SSLError
+2026-09-29 19:41:49,348 WARNING etl.main Discovery failed for superset:b575b146-15c6-4521-906d-dcc5fa5bed1e: SSLError
+2026-09-29 19:41:52,115 WARNING etl.main Discovery failed for superset:d8c94ab7-ab24-405c-8baa-cf6b82a17f44: SSLError
+2026-09-29 19:42:38,468 WARNING etl.main Discovery failed for superset:27b5d07e-111a-449a-84a2-efc3b6cf5fa1: SSLError
+2026-09-29 19:42:42,437 WARNING etl.main Discovery failed for superset:886ade99-a1b9-442b-94cd-8e2e9671c381: SSLError
+2026-09-29 19:42:45,095 WARNING etl.main Discovery failed for superset:b575b146-15c6-4521-906d-dcc5fa5bed1e: SSLError
+2026-09-29 19:42:50,441 WARNING etl.main Discovery failed for superset:d8c94ab7-ab24-405c-8baa-cf6b82a17f44: SSLError
+2026-09-29 19:42:54,222 WARNING etl.main Discovery failed for superset:49bb9ba6-06b7-4525-9ff7-a78e384e6854: SSLError
+2026-09-29 19:43:04,576 WARNING etl.main Discovery failed for superset:27b5d07e-111a-449a-84a2-efc3b6cf5fa1: SSLError
+2026-09-29 19:45:38,928 WARNING etl.main Extraction failed for superset:886ade99-a1b9-442b-94cd-8e2e9671c381:667: HTTPError HTTP 400
+2026-09-29 19:52:13,317 WARNING etl.main Extraction failed for superset:49bb9ba6-06b7-4525-9ff7-a78e384e6854:1394: SSLError
+2026-09-29 19:52:37,393 WARNING etl.main Extraction failed for superset:49bb9ba6-06b7-4525-9ff7-a78e384e6854:1398: HTTPError HTTP 400
+2026-09-29 19:52:49,549 WARNING etl.main Extraction failed for superset:86d8feac-474a-4d74-9928-aaaf034fd1f5:1399: HTTPError HTTP 400
+2026-09-29 19:53:48,524 WARNING etl.main Extraction failed for superset:f9c8313f-5f64-4517-9720-5ee7689a50f8:1393: HTTPError HTTP 400
+2026-09-29 19:54:55,764 WARNING etl.main Extraction failed for superset:c333627c-1721-49c7-a6f1-c6369751bd45:1390: HTTPError HTTP 400
+2026-09-29 19:56:51,065 WARNING etl.main Discovery failed for superset:6d816cf9-91b5-4711-9b77-6ee93aa7bcca: CookieConflictError
+2026-09-29 19:57:26,495 WARNING etl.main Extraction failed for superset:380d5b59-7fad-4d96-9bbc-c0e8c0309e41:1459: HTTPError HTTP 400
+2026-09-29 19:58:16,419 WARNING etl.main Discovery failed for superset:e5f3e11f-f456-4729-aa68-53e53c1e459e: CookieConflictError
+2026-09-29 19:58:17,673 WARNING etl.main Extraction failed for cctv_native:cctv-atcs:cameras: SSLError
