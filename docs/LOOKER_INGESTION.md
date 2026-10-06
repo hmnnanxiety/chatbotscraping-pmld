@@ -51,8 +51,9 @@ trust store through your normal admin process. No automatic trust-store edits.
 
 Fixtures are synthetic small chart results, not production snapshots. Their row
 counts demonstrate deterministic extraction/pagination; they do not establish
-fresh live counts or guarantee future DOM compatibility. Fiber/Tableau dynamic extraction and Grafana/xPlore
-remain unconfigured and unsupported.
+fresh live counts or guarantee future DOM compatibility. Grafana/xPlore remains
+unconfigured and unsupported. Fiber Optic now has a separate, limited visible-card
+path; see [Tableau scope and limitations](TABLEAU_INGESTION.md).
 
 ## Targeted table validation (2026-10-06)
 

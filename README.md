@@ -129,6 +129,19 @@ It does not fetch menus or crawl sources. Schema/transform revision stays 2.1.0;
 portal labels participate in content hashes without changing record identity or
 legacy unscoped hashes. See [Looker extraction limits](docs/LOOKER_INGESTION.md).
 
+## Fiber Optic / Tableau Public
+
+`tableau_sources` adds `Dashboard Ajimandaya` → `Jaringan di DIY`, workbook
+`DashboardJaringanDIY`, view `FO`. The adapter extracts three visible,
+publisher-authored metric cards from the viewer's structured network response,
+cross-checked against exposed DOM text. It does not extract worksheet/underlying
+data, bypass export permissions or use OCR. Detailed worksheets are explicitly
+unsupported; a successful targeted run is partial, not full-view coverage.
+
+The existing optional browser dependencies also support this adapter. Schema
+2.1.0, output filenames, deterministic chunking and TLS/custom CA rules are
+unchanged. See [Tableau scope and operation](docs/TABLEAU_INGESTION.md).
+
 ## Files
 
 - `extractors/`: SourceAdapter protocol, retry/HTTP transport, Superset,

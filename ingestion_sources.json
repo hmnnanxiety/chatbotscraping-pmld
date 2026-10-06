@@ -43,6 +43,18 @@
       "url": "https://lookerstudio.google.com/embed/reporting/feffa0ab-1727-484e-89bd-979871799ae6/page/p_xm5zudawmd"
     }
   ],
+  "tableau_sources": [
+    {
+      "id": "tableau-jaringan-diy",
+      "name": "Dashboard Jaringan Fiber Optic di DIY",
+      "url": "https://public.tableau.com/views/DashboardJaringanDIY/FO?:language=en-US&:display_count=n&:origin=viz_share_link",
+      "visible_metrics": {
+        "Panjang Kabel Udara": "m",
+        "Panjang Kabel Tanam": "m",
+        "Panjang Agregat": "m"
+      }
+    }
+  ],
   "web_sources": [
     {
       "id": "tableau-pelajar-diy",

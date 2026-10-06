@@ -13,6 +13,7 @@ class StandaloneTests(unittest.TestCase):
                    "extractors.base", "extractors.superset", "extractors.cctv",
                    "extractors.tableau_looker", "extractors.registry", "portal_scope",
                    "extractors.looker_studio", "extractors.looker_browser",
+                   "extractors.tableau_public", "extractors.tableau_browser",
                    "transformers.staging", "transformers.chunking"]
         for name in modules:
             with self.subTest(module=name):

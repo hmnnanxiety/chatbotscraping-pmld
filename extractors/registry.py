@@ -6,6 +6,7 @@ from extractors.superset import SupersetAdapter
 from extractors.cctv import CCTVNativeAdapter
 from extractors.tableau_looker import TableauLookerAdapter
 from extractors.looker_studio import LookerStudioAdapter
+from extractors.tableau_public import TableauPublicAdapter
 
 def source_inventory(config):
     """Keep configured source identity independently of current portal visibility."""
@@ -24,6 +25,8 @@ def source_inventory(config):
                  for s in config.get("web_sources", []))
     items.extend({"source_type": "looker_studio", "id": s["id"], "name": s["name"], "config": s}
                  for s in config.get("looker_sources", []))
+    items.extend({"source_type": "tableau_public", "id": s["id"], "name": s["name"], "config": s}
+                 for s in config.get("tableau_sources", []))
     return items
 
 def configured_adapters(config_path):
@@ -38,6 +41,8 @@ def configured_adapters(config_path):
             selected.append(CCTVNativeAdapter([item["id"]]))
         elif item["source_type"] == "looker_studio":
             selected.append(LookerStudioAdapter(item["config"]))
+        elif item["source_type"] == "tableau_public":
+            selected.append(TableauPublicAdapter(item["config"]))
         else:
             selected.append(TableauLookerAdapter([item["config"]]))
     return ScopedAdapters(selected, scope)
