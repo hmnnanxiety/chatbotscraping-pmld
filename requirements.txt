@@ -1,0 +1,8 @@
+# Ingestion/chunking only. Exact direct + transitive versions validated on Python 3.12.
+requests==2.34.2
+python-dotenv==1.2.3
+tenacity==9.1.4
+certifi==2026.7.22
+charset-normalizer==3.5.1
+idna==3.20
+urllib3==2.8.0

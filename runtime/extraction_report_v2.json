@@ -1,0 +1,44 @@
+{
+  "abort_reason": "Consecutive systemic failures across three source/dashboard scopes",
+  "attempted": 0,
+  "carried_forward": 0,
+  "carried_forward_targets": [],
+  "chunks_produced": 0,
+  "duration_s": 6.474,
+  "failed": 0,
+  "failures": [
+    {
+      "adapter": "superset:27b5d07e-111a-449a-84a2-efc3b6cf5fa1",
+      "category": "tls",
+      "message": "SSLError",
+      "stage": "discovery",
+      "target_id": null
+    },
+    {
+      "adapter": "superset:886ade99-a1b9-442b-94cd-8e2e9671c381",
+      "category": "tls",
+      "message": "SSLError",
+      "stage": "discovery",
+      "target_id": null
+    },
+    {
+      "adapter": "superset:b575b146-15c6-4521-906d-dcc5fa5bed1e",
+      "category": "tls",
+      "message": "SSLError",
+      "stage": "discovery",
+      "target_id": null
+    }
+  ],
+  "failures_by_category": {
+    "tls": 3
+  },
+  "metadata_only": 0,
+  "records_produced": 0,
+  "skipped": 0,
+  "skipped_targets": [],
+  "started_at": "2026-10-03T21:13:58+00:00",
+  "status": "aborted",
+  "succeeded": 0,
+  "targets_discovered": 0,
+  "unavailable_targets": 3
+}

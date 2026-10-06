@@ -1,0 +1,35 @@
+# Local credentials; no credentials are shipped with this project.
+.env
+.env.*
+!.env.example
+.dwh_token_cache.json
+
+# Python environments and disposable caches.
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+htmlcov/
+
+# Generated ingestion outputs (not source configuration or test fixtures).
+/runtime-*/
+/staging_superset_data.json
+/staging_idmc_data.json
+/ready_for_vector_db_v2.json
+/delta_state_v2.json
+/extraction_report_v2.json
+*.log
+.ingestion.lock
+.etl-transaction.json
+.etl-transaction-*/
+*.tmp
+.ingestion-demo/
+.audit/
+.DS_Store
+.vscode/

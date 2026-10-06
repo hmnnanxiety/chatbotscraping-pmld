@@ -1,0 +1,16 @@
+{
+  "superset": true,
+  "cctv_groups": ["cctv-atcs"],
+  "web_sources": [
+    {
+      "id": "tableau-pelajar-diy",
+      "name": "Demografi Pelajar DIY",
+      "url": "https://public.tableau.com/views/DemografiAnalisisPersebaranSiswaDaerahIstimewaYogyakarta/Umum?:showVizHome=no"
+    },
+    {
+      "id": "looker-perkebunan-diy",
+      "name": "Perkebunan DIY",
+      "url": "https://lookerstudio.google.com/embed/reporting/2f568f00-d9a0-4f99-a1fe-6df3ff503927/page/p_9s7xethl8c"
+    }
+  ]
+}
