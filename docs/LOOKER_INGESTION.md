@@ -1,5 +1,10 @@
 # Frontend coverage: CCTV Kota and Looker Studio
 
+Current standalone full-run evidence is in [FINAL_VALIDATION.md](FINAL_VALIDATION.md):
+all 18 supported tables across five reports succeeded (909 rows), while 134
+non-table components remained explicitly unsupported. The targeted results below
+describe the earlier parser investigation, not the full-run totals.
+
 `cctv_portal_aliases` maps portal transport aliases to existing native camera
 locations. Kota uses `cctv.atcs-kota` in menus but `cctv-kota` in the API. The
 native adapter and next-link traversal are unchanged. Both internal identity and
@@ -51,11 +56,11 @@ trust store through your normal admin process. No automatic trust-store edits.
 
 Fixtures are synthetic small chart results, not production snapshots. Their row
 counts demonstrate deterministic extraction/pagination; they do not establish
-fresh live counts or guarantee future DOM compatibility. Grafana/xPlore remains
-unconfigured and unsupported. Fiber Optic now has a separate, limited visible-card
-path; see [Tableau scope and limitations](TABLEAU_INGESTION.md).
+fresh live counts or guarantee future DOM compatibility. Grafana/xPlore has a
+separate [public-panel adapter](GRAFANA_INGESTION.md). Fiber Optic has a separate,
+limited visible-card path; see [Tableau scope and limitations](TABLEAU_INGESTION.md).
 
-## Targeted table validation (2026-10-06)
+## Historical targeted table validation (2026-10-06)
 
 Tables without display ordinals can expose native `block-N index-M` coordinates.
 The parser merges pinned segments and tracks rows by the full block/slot pair,

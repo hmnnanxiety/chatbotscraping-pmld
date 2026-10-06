@@ -1,5 +1,9 @@
 # Grafana/xPlore public SMA ingestion
 
+The [final standalone full run](FINAL_VALIDATION.md) validated 13 supported panels,
+17 records, 2,503 rows and 1,897 chunks, with 19 unsupported panels. The earlier
+targeted experiment counts below are historical, not the final standalone totals.
+
 One `GrafanaPublicAdapter` implements `discover()` / `extract(target)` for both
 Yogyakarta and Mudik. Registry config uses `grafana_sources`; exact origin/public
 URL matching keeps portal scope separate from internal dashboard UID/title.
@@ -62,7 +66,8 @@ dashboards, writes isolated validation artifacts, checks primary runtime hashes,
 and validates deterministic replay and whole-row chunk coverage. Unsupported
 panels make coverage PARTIAL; metadata-only results are never reported as extracted
 data. The validator does not run full registry ingestion or any downstream service.
-This standalone backport is verified offline; no live ingestion is run for it.
+The initial standalone backport was verified offline without live ingestion;
+the subsequent complete standalone live run is documented separately above.
 
 ## Historical experiment validation, 2026-10-06
 

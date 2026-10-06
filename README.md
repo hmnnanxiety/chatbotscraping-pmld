@@ -1,170 +1,110 @@
 # scraping-pipeline
 
-Standalone IDMC DIY scraping, normalization, staging and whole-row chunking.
-The pipeline ends at JSON output. All source code and configuration live here;
-no sibling project, production snapshot, local database or external application
-is required to run the automated tests.
+Standalone ingestion for the IDMC DIY portal: source discovery → extraction →
+normalization → validation → delta/change detection → staging → whole-row
+chunking → JSON output. No sibling repository is imported or required.
 
-## Quick Start (PowerShell)
+**The scope stops before embedding, vector databases, retrieval, RAG and chat.**
+There is no FastAPI, Gemini, Chroma, frontend application or answer generation.
+`ready_for_vector_db_v2.json` is a compatibility filename, not a vector operation.
 
-Python 3.12; requirements pin the ingestion dependencies and their transitive dependencies.
+## Setup and run (PowerShell)
+
+Python 3.12 is the pinned dependency target; final live validation also passed
+on Python 3.13. Install the optional browser set for Looker and Tableau:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
-# Only when .env does not already exist:
-Copy-Item .env.example .env
-# Fill .env with valid local values, then:
-python -m tests.smoke_config
-python main_orchestrator.py --output-dir runtime
+python -m pip install -r requirements-looker.txt
+$env:PLAYWRIGHT_BROWSERS_PATH = "$PWD/runtime/playwright-browsers"
+python -m playwright install chromium --only-shell
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+# Configure .env for your environment before running:
+python -B -m tests.smoke_config --output-dir runtime
+python -B main_orchestrator.py --output-dir runtime
 ```
 
-The diagnostic is offline: it checks configuration, dependency imports and output
-permissions, not cookie validity. `.env` is loaded once from this project;
-existing process environment variables take precedence. Restart after changes.
+Use the same browser-cache variable when running in a new shell. Base HTTP
+sources and synthetic tests do not need Chromium; missing browser dependencies
+fail browser-source extraction explicitly. Browser DOM tests may skip without an
+installed browser. `tests.smoke_config` is offline and does not validate cookies.
 
-TLS modes: recommended `IDMC_VERIFY_TLS=true`; for a trusted custom CA use
-`IDMC_CA_BUNDLE=C:/path/to/ca.pem` (takes precedence). `IDMC_VERIFY_TLS=false`
-is a **development-only workaround**, not a production setting; it emits one
-application warning instead of repeated insecure-request warnings.
-Fallback cookies can expire: refresh `.env` values on HTTP 401/403.
-Never commit `.env` or share cookie/token values in logs.
+## Production TLS and configuration
 
-## Environment mode
-
-`APP_ENV` defaults to `development`; TLS verification defaults to `true`.
-Local development may explicitly disable verification:
-
-```dotenv
-APP_ENV=development
-IDMC_VERIFY_TLS=false
-```
-
-Production requires secure TLS:
+The supplied `.env.example` explicitly selects **development with TLS disabled**.
+It is not a production template as-is. Unset TLS configuration defaults to verified
+HTTPS. For production, configure local `.env` or process variables:
 
 ```dotenv
 APP_ENV=production
 IDMC_VERIFY_TLS=true
-# Optional trusted deployment CA:
-# IDMC_CA_BUNDLE=C:/trusted/ca.pem
+IDMC_CA_BUNDLE=certs/idmc-ca-bundle.pem
 ```
 
-A readable custom CA bundle is the supported production fallback and takes
-precedence over normal verification. Production rejects explicit
-`IDMC_VERIFY_TLS=false` **even with a CA configured**, before discovery.
-Only insecure development suppresses repeated certificate warnings; one application
-warning remains. Restart after changing configuration; never commit real `.env`.
+Obtain a trusted PEM CA bundle through your deployment administrator; the path
+must be readable (relative paths resolve inside this project). Omit the CA setting
+when standard trust suffices. Production rejects `IDMC_VERIFY_TLS=false`, even
+with a CA configured. Development-only insecure HTTP emits a warning. Chromium
+uses platform trust, not the HTTP PEM setting, and never bypasses HTTPS errors.
+
+`.env` loads once; process variables take precedence. Restart after changes.
+The four `DWH_COOKIE_*` values are optional Superset fallback credentials; refresh
+expired cookies locally, never commit or log them. Source inventory lives in
+`ingestion_sources.json` and `dashboards.py`; current visibility comes from the
+portal APIs, not a hardcoded dashboard count.
+
+## Supported extraction
+
+| Source | Extraction boundary |
+| --- | --- |
+| Superset | Guest-token/session transport, dashboard/chart discovery, stored queries with effective default filters |
+| CCTV native | Configured location filters, complete next-link pagination and unique-ID/total checks |
+| Looker Studio | Rendered structured tables on configured report pages; pagination and virtual-row coverage |
+| Tableau Public | Fiber Optic's three published metric cards; detailed worksheet export is unavailable |
+| Grafana/xPlore | Supported saved public-panel queries and typed DataFrames; custom renderers/transforms explicitly unsupported |
+
+Portal names and internal source IDs/names are both retained. Hidden sources and
+their previous records cannot enter published chunks. Perkebunan remains an
+explicit legacy **metadata-only** record, not extracted table data.
+
+## Outputs and reliability
+
+Always pass `--output-dir runtime` (or a separate validation directory); the CLI
+default is the repository root. Outputs are normalized staging, chunk JSON,
+delta state, extraction report and diagnostic log. Schema container version is
+`2`; normalization/transform revision is `2.1.0`.
+
+Rows are canonicalized and never split. IDs/hashes/grouping are deterministic for
+identical input/configuration. Oversized individual rows are flagged, not truncated.
+Retries and per-target isolation preserve healthy sources; stale carry-forward
+never advances the last successful-fetch timestamp. Validated output publication
+has locking, atomic file replacement, rollback/recovery and delta committed last.
+Exit codes: `0` ok, `2` usable partial, `1` aborted with known-good data preserved.
 
 ## Offline verification
 
 ```powershell
 python -B -m unittest discover -s tests -v
-python -B -m tests.reproduce --output-dir .ingestion-demo
+python -B -m tests.reproduce --output-dir runtime/reproduction
+python -B -m tests.reproduce_frontend --output-dir runtime/frontend-reproduction
+python -B transformer.py --staging runtime/staging_idmc_data.json --output runtime/ready_for_vector_db_v2.json
 ```
 
-Reproduction executes the pipeline twice using a small synthetic source fixture
-defined in Python (2 records, 151 rows), compares staging/chunk/delta bytes and
-validates every row. No production data or credentials are test fixtures.
+Both reproduction commands publish twice from small synthetic fixtures and check
+byte-identical staging/chunks/delta plus exact row coverage. No production snapshot,
+credentials or live service is a test prerequisite.
 
-## Live ingestion and offline transformation
+## Handoff evidence and documentation
 
-```powershell
-.\.venv\Scripts\python.exe -B main_orchestrator.py --output-dir runtime
-.\.venv\Scripts\python.exe -B transformer.py --staging runtime/staging_idmc_data.json --output runtime/ready_for_vector_db_v2.json
-```
+Final live validation (2026-10-06): **9 active menus, 25 mapped sources, 0 unmapped,
+7 hidden excluded; 97 records, 5,550 rows, 2,436 chunks; 183 tests passed**.
+Status **PARTIAL**: UMKM timeouts, overlapping CCTV SPL/Kota page IDs, Perkebunan
+metadata-only, non-table Looker visuals, denied Tableau details and unsupported
+Grafana panels. Mapping coverage is not complete underlying-data coverage.
 
-Sources: `ingestion_sources.json` and `dashboards.py`. Optional local cookie
-fallbacks and TLS settings: copy `.env.example` to `.env` and configure locally.
-No real credentials are included or read from a sibling project.
-
-Output files:
-- `staging_idmc_data.json`: schema v2 normalized records.
-- `ready_for_vector_db_v2.json`: plain chunk JSON; historical filename retained
-  for downstream contract compatibility, not a database integration.
-- `delta_state_v2.json`: independent content/metadata hashes.
-- `extraction_report_v2.json`: run outcomes and classified failures.
-- `ingestion_errors.log`: local diagnostic log.
-
-Normalization and transform revision remain **2.1.0**. Exit codes:
-0 = ok, 2 = usable partial result, 1 = aborted without replacing known-good state.
-
-See [the ingestion contract and operating notes](docs/INGESTION_V2.md).
-
-## Portal scope and Looker tables
-
-Each configured run verifies the current menu API and home dashboard metadata
-before source discovery. Only active pages under active ancestors are published;
-source IDs/internal names remain in provenance alongside portal-facing names.
-Hidden previous records are excluded even during stale carry-forward. A failed
-menu lookup aborts without replacing known-good outputs; unmapped visible pages
-are listed in the extraction report and result in exit code 2.
-
-The inventory now includes eleven native CCTV locations. The portal alias
-`cctv.atcs-kota` maps to API location `cctv-kota`, with unchanged pagination.
-Five configured Looker reports use a reusable rendered-table adapter: IKM,
-SPBE 2023/2024/2025 and Masterplan JSP. Non-table charts are unsupported, not
-metadata-only extraction successes. Existing `web_sources` are unchanged.
-
-Looker requires an optional dependency set and a browser, installed locally:
-
-```powershell
-python -m pip install -r requirements-looker.txt
-# Optional E: cache location; use the same setting when running ingestion:
-$env:PLAYWRIGHT_BROWSERS_PATH = "$PWD/runtime/playwright-browsers"
-python -m playwright install chromium --only-shell
-python -B -m unittest discover -s tests -v
-python -B -m tests.reproduce_frontend --output-dir runtime/frontend-demo
-```
-
-Without Playwright, synthetic adapter tests still run but browser DOM tests skip;
-live Looker extraction fails explicitly as `browser_unavailable`. The offline
-DOM tests can use locally installed Edge. No sibling project/browser cache is
-required. Chromium verifies TLS using platform trust; existing HTTP custom CA
-and production TLS rules remain unchanged.
-
-The frontend reproduction uses five small synthetic reports (40 rows), repeats
-publication twice and checks byte-identical staging/chunks/delta and row coverage.
-It does not fetch menus or crawl sources. Schema/transform revision stays 2.1.0;
-portal labels participate in content hashes without changing record identity or
-legacy unscoped hashes. See [Looker extraction limits](docs/LOOKER_INGESTION.md).
-
-## Fiber Optic / Tableau Public
-
-`tableau_sources` adds `Dashboard Ajimandaya` → `Jaringan di DIY`, workbook
-`DashboardJaringanDIY`, view `FO`. The adapter extracts three visible,
-publisher-authored metric cards from the viewer's structured network response,
-cross-checked against exposed DOM text. It does not extract worksheet/underlying
-data, bypass export permissions or use OCR. Detailed worksheets are explicitly
-unsupported; a successful targeted run is partial, not full-view coverage.
-
-The existing optional browser dependencies also support this adapter. Schema
-2.1.0, output filenames, deterministic chunking and TLS/custom CA rules are
-unchanged. See [Tableau scope and operation](docs/TABLEAU_INGESTION.md).
-
-## Social Media Analytic / Grafana-xPlore
-
-`grafana_sources` maps the portal's Yogyakarta and Mudik pages to public
-dashboard URLs. One reusable adapter discovers saved panels and reads structured
-public query DataFrames. Unsupported custom renderers/transformation chains are
-reported explicitly; successful empty queries retain explicit no-data metadata.
-Coverage is partial, not a complete article archive. No new dependency is needed;
-schema 2.1.0, portal scope, deterministic chunking and TLS/custom CA remain unchanged.
-See [Grafana scope and operation](docs/GRAFANA_INGESTION.md).
-
-Offline checks: `python -B -m unittest tests.test_grafana_public tests.test_standalone -v`.
-The optional targeted live validator is available but is not run during this
-backport: `python -B -m tests.validate_grafana_live --output-dir runtime/grafana-targeted`.
-
-## Files
-
-- `extractors/`: SourceAdapter protocol, retry/HTTP transport, Superset,
-  native CCTV, legacy Tableau/Looker, reusable Looker tables and source registry.
-- `contracts.py`, `extractor.py`, `delta_checker.py`, `etl_common.py`:
-  generic contracts, reliability, change detection and publication.
-- `transformers/`: staging migration, whole-row chunking and validation.
-- `main_orchestrator.py`, `transformer.py`: orchestration and offline CLI.
-- `dwh_client.py`: source-specific session/token transport.
-- `tests/`: offline synthetic tests and deterministic reproduction.
-
-No Git repository/history or runtime datasets were copied into this handoff.
+- [Architecture, contracts, configuration and operations](docs/INGESTION_V2.md)
+- [Source discovery/mapping walkthrough and debugging findings](docs/SOURCE_DISCOVERY_WALKTHROUGH.md)
+- [Final live validation, integrity checks and known limitations](docs/FINAL_VALIDATION.md)
+- Adapter details: [Looker](docs/LOOKER_INGESTION.md), [Tableau](docs/TABLEAU_INGESTION.md), [Grafana](docs/GRAFANA_INGESTION.md)

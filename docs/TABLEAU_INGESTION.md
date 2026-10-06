@@ -1,5 +1,9 @@
 # Tableau Public: Jaringan di DIY / Fiber Optic
 
+The [final standalone full run](FINAL_VALIDATION.md) confirmed one record, three
+visible metric rows and one chunk; both detailed worksheets remain unsupported.
+The historical targeted evidence below explains the mechanism and its limits.
+
 Standalone backport of the validated experiment implementation. Portal API entry 171 currently maps
 `Dashboard Ajimandaya` → `Jaringan di DIY` to workbook `DashboardJaringanDIY`,
 view `FO`. Names/visibility still come from the verified portal scope; workbook,
