@@ -55,6 +55,18 @@
       }
     }
   ],
+  "grafana_sources": [
+    {
+      "id": "grafana-sma-yogyakarta",
+      "name": "Monitoring Media Analytics Yogyakarta",
+      "url": "https://xplore.pustakadata.id/public-dashboards/9bd0711386f5414a8d408124231d7209"
+    },
+    {
+      "id": "grafana-sma-mudik",
+      "name": "Monitoring Media Analytics Mudik Yogyakarta",
+      "url": "https://xplore.pustakadata.id/public-dashboards/dfe21823dc1e4d05b789d9a97f831c89"
+    }
+  ],
   "web_sources": [
     {
       "id": "tableau-pelajar-diy",

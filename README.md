@@ -142,6 +142,20 @@ The existing optional browser dependencies also support this adapter. Schema
 2.1.0, output filenames, deterministic chunking and TLS/custom CA rules are
 unchanged. See [Tableau scope and operation](docs/TABLEAU_INGESTION.md).
 
+## Social Media Analytic / Grafana-xPlore
+
+`grafana_sources` maps the portal's Yogyakarta and Mudik pages to public
+dashboard URLs. One reusable adapter discovers saved panels and reads structured
+public query DataFrames. Unsupported custom renderers/transformation chains are
+reported explicitly; successful empty queries retain explicit no-data metadata.
+Coverage is partial, not a complete article archive. No new dependency is needed;
+schema 2.1.0, portal scope, deterministic chunking and TLS/custom CA remain unchanged.
+See [Grafana scope and operation](docs/GRAFANA_INGESTION.md).
+
+Offline checks: `python -B -m unittest tests.test_grafana_public tests.test_standalone -v`.
+The optional targeted live validator is available but is not run during this
+backport: `python -B -m tests.validate_grafana_live --output-dir runtime/grafana-targeted`.
+
 ## Files
 
 - `extractors/`: SourceAdapter protocol, retry/HTTP transport, Superset,

@@ -29,6 +29,11 @@ def source_key(source):
     if parsed.scheme != "https" or parsed.username or parsed.password:
         return None
     host = (parsed.hostname or "").lower()
+    # Public Grafana identity includes exact origin and public access ID. Query
+    # parameters are not discarded: a filtered URL needs its own verified mapping.
+    import re
+    if host and re.fullmatch(r"/public-dashboards/[0-9a-f]{32}/?", parsed.path) and not parsed.query and not parsed.fragment:
+        return ("grafana_public", parsed.netloc.lower(), parsed.path.rstrip("/"))
     if host not in {"public.tableau.com", "lookerstudio.google.com", "datastudio.google.com"}:
         return None
     # Remove display-only Tableau parameters, retaining dataset/filter parameters.
