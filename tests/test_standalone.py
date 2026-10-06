@@ -11,7 +11,8 @@ class StandaloneTests(unittest.TestCase):
         modules = ["contracts", "extractor", "delta_checker", "etl_common", "transformer",
                    "main_orchestrator", "dwh_client", "dashboards",
                    "extractors.base", "extractors.superset", "extractors.cctv",
-                   "extractors.tableau_looker", "extractors.registry",
+                   "extractors.tableau_looker", "extractors.registry", "portal_scope",
+                   "extractors.looker_studio", "extractors.looker_browser",
                    "transformers.staging", "transformers.chunking"]
         for name in modules:
             with self.subTest(module=name):

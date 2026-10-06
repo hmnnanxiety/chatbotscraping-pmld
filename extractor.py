@@ -26,6 +26,8 @@ class ExtractionResult:
     report: dict
 
 def classify_error(exc):
+    if getattr(exc, "ingestion_category", None) in {"unsupported", "browser_unavailable", "validation", "timeout"}:
+        return exc.ingestion_category
     if isinstance(exc, requests.exceptions.SSLError):
         return "tls"
     if isinstance(exc, requests.Timeout):
@@ -47,7 +49,7 @@ def classify_error(exc):
 def error_summary(exc):
     category = classify_error(exc)
     # Never include HTTP response bodies, cookies, tokens or URLs in runtime reports.
-    detail = (str(exc)[:180] if category == "validation" else
+    detail = (str(exc)[:180] if category in {"validation", "unsupported", "browser_unavailable"} else
               friendly_http_error(exc) if isinstance(exc, requests.RequestException) else
               "Authentication failed. Check the guest-token error above and refresh fallback cookies in .env."
               if category == "auth" else type(exc).__name__)

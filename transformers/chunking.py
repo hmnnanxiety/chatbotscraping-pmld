@@ -17,9 +17,9 @@ def _brief(value, limit=120):
 
 def _header(record):
     m = record.metadata
-    parts = [f"Source: {_brief(m['source_name'])}",
-             f"Dashboard: {_brief(m['dashboard_name'])}",
-             f"Chart: {_brief(m['chart_name'])}"]
+    parts = [f"Source: {_brief(m.get('portal_menu_name', m['source_name']))}",
+             f"Dashboard: {_brief(m.get('portal_page_name', m['dashboard_name']))}",
+             f"Chart: {_brief(m.get('source_chart_name', m['chart_name']))}"]
     for label, key in (("Period", "statistical_period"), ("Unit", "unit"), ("Filters", "effective_filters")):
         if m.get(key) not in (None, [], {}):
             parts.append(f"{label}: {_brief(m[key])}")
@@ -78,6 +78,8 @@ def build_documents(records, max_chars=DEFAULT_MAX_CHARS):
     for key, record in sorted(records.items()):
         if key != record.id:
             raise ValueError("Record map key does not match record_id")
+        if record.metadata.get("portal_visible") is False:
+            raise ValueError("Hidden portal record must not enter chatbot-ready chunks")
         docs.extend(_record_chunks(record, max_chars))
     validate_chunks(records, docs, max_chars)
     return docs

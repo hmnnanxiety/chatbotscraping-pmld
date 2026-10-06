@@ -18,6 +18,9 @@ log = logging.getLogger("etl.retry")
 def transient_error(exc: BaseException) -> bool:
     if isinstance(exc, requests.exceptions.SSLError):
         return False
+    if getattr(exc, "ingestion_category", None) == "timeout":
+        # Browser adapters expose timeouts without depending on requests exceptions.
+        return True
     if isinstance(exc, (requests.Timeout, requests.ConnectionError)):
         return True
     response = getattr(exc, "response", None)

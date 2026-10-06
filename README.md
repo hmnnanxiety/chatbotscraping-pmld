@@ -91,10 +91,48 @@ Normalization and transform revision remain **2.1.0**. Exit codes:
 
 See [the ingestion contract and operating notes](docs/INGESTION_V2.md).
 
+## Portal scope and Looker tables
+
+Each configured run verifies the current menu API and home dashboard metadata
+before source discovery. Only active pages under active ancestors are published;
+source IDs/internal names remain in provenance alongside portal-facing names.
+Hidden previous records are excluded even during stale carry-forward. A failed
+menu lookup aborts without replacing known-good outputs; unmapped visible pages
+are listed in the extraction report and result in exit code 2.
+
+The inventory now includes eleven native CCTV locations. The portal alias
+`cctv.atcs-kota` maps to API location `cctv-kota`, with unchanged pagination.
+Five configured Looker reports use a reusable rendered-table adapter: IKM,
+SPBE 2023/2024/2025 and Masterplan JSP. Non-table charts are unsupported, not
+metadata-only extraction successes. Existing `web_sources` are unchanged.
+
+Looker requires an optional dependency set and a browser, installed locally:
+
+```powershell
+python -m pip install -r requirements-looker.txt
+# Optional E: cache location; use the same setting when running ingestion:
+$env:PLAYWRIGHT_BROWSERS_PATH = "$PWD/runtime/playwright-browsers"
+python -m playwright install chromium --only-shell
+python -B -m unittest discover -s tests -v
+python -B -m tests.reproduce_frontend --output-dir runtime/frontend-demo
+```
+
+Without Playwright, synthetic adapter tests still run but browser DOM tests skip;
+live Looker extraction fails explicitly as `browser_unavailable`. The offline
+DOM tests can use locally installed Edge. No sibling project/browser cache is
+required. Chromium verifies TLS using platform trust; existing HTTP custom CA
+and production TLS rules remain unchanged.
+
+The frontend reproduction uses five small synthetic reports (40 rows), repeats
+publication twice and checks byte-identical staging/chunks/delta and row coverage.
+It does not fetch menus or crawl sources. Schema/transform revision stays 2.1.0;
+portal labels participate in content hashes without changing record identity or
+legacy unscoped hashes. See [Looker extraction limits](docs/LOOKER_INGESTION.md).
+
 ## Files
 
 - `extractors/`: SourceAdapter protocol, retry/HTTP transport, Superset,
-  native CCTV, Tableau/Looker and source registry.
+  native CCTV, legacy Tableau/Looker, reusable Looker tables and source registry.
 - `contracts.py`, `extractor.py`, `delta_checker.py`, `etl_common.py`:
   generic contracts, reliability, change detection and publication.
 - `transformers/`: staging migration, whole-row chunking and validation.

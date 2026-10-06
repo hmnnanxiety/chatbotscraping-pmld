@@ -7,7 +7,7 @@ import time
 from contracts import utcnow
 from delta_checker import DeltaChecker
 from etl_common import ROOT, atomic_write_json, ingestion_lock, publish_bundle, recover_publication, setup_logging
-from extractor import DEFAULT_MIN_SUCCESS_RATIO, ExtractionAborted, error_summary, extract_all
+from extractor import DEFAULT_MIN_SUCCESS_RATIO, ExtractionAborted, ExtractionResult, error_summary, extract_all
 from transformers import build_documents, load_staging, staging_payload
 from ingestion_config import ConfigurationError, startup_check
 
@@ -29,6 +29,7 @@ def run(force=False, include_known_bad=False,
     started = time.monotonic()
     report = {"status": "aborted", "started_at": now or utcnow(), "failures": []}
     documents = None
+    scope_report = None
     handler = logging.FileHandler(output_dir / "ingestion_errors.log", encoding="utf-8")
     handler.setLevel(logging.WARNING)
     handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s"))
@@ -42,12 +43,33 @@ def run(force=False, include_known_bad=False,
                                         output_dir / "staging_superset_data.json")
                 if adapters is None:
                     from extractors.registry import configured_adapters
+                    scope_report = {"status": "unavailable"}
                     adapters = configured_adapters(config_path)
-                result = extract_all(previous, adapters=adapters, min_success_ratio=min_success_ratio,
-                                     include_known_bad=include_known_bad, now=now,
-                                     record_validator=lambda records: build_documents(records, max_chars))
+                scope = getattr(adapters, "portal_scope", None)
+                if scope is not None:
+                    scope_report = scope.summary()
+                    previous, excluded = scope.apply(previous)
+                    scope_report.update(previous_records_excluded=len(excluded), excluded_record_ids=excluded)
+                if scope is not None and not adapters:
+                    # A verified scope with zero configured matches is a valid empty output.
+                    result = ExtractionResult({}, {"status": "ok", "started_at": now or utcnow(), "failures": []})
+                else:
+                    result = extract_all(previous, adapters=adapters, min_success_ratio=min_success_ratio,
+                                         include_known_bad=include_known_bad, now=now,
+                                         record_validator=lambda records: build_documents(
+                                             scope.apply(records)[0] if scope is not None else records, max_chars))
+                if scope is not None:
+                    result.records, unexpected = scope.apply(result.records)
+                    if unexpected:
+                        raise ValueError("Adapter returned records outside verified portal scope")
+                    result.report["records_produced"] = len(result.records)
+                    if scope_report["unmapped_visible_entries"]:
+                        result.report["status"] = "partial"
                 report = result.report
-                checker = DeltaChecker(output_dir / "delta_state_v2.json", config={"max_chunk_chars": max_chars, "row_order": "canonical_json"})
+                delta_config = {"max_chunk_chars": max_chars, "row_order": "canonical_json"}
+                if scope is not None:
+                    delta_config["portal_scope_version"] = scope_report["scope_version"]
+                checker = DeltaChecker(output_dir / "delta_state_v2.json", config=delta_config)
                 delta = checker.check(result.records, force=force)
                 # Cheap deterministic regeneration always refreshes metadata and repairs missing chunks.
                 documents = build_documents(result.records, max_chars)
@@ -70,6 +92,8 @@ def run(force=False, include_known_bad=False,
                 report.setdefault("failures", []).append({"stage": "pipeline", "category": category, "message": message})
                 categories = report.setdefault("failures_by_category", {})
                 categories[category] = categories.get(category, 0) + 1
+            if scope_report is not None:
+                report["portal_scope"] = scope_report
             report["duration_s"] = round(time.monotonic() - started, 3)
             for key in ("targets_discovered", "attempted", "succeeded", "failed", "carried_forward",
                         "skipped", "metadata_only", "records_produced", "chunks_produced"):

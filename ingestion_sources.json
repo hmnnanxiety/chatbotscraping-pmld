@@ -1,6 +1,48 @@
 {
   "superset": true,
-  "cctv_groups": ["cctv-atcs"],
+  "cctv_groups": [
+    "cctv-atcs",
+    "cctv-bantul",
+    "cctv-kominfosleman",
+    "cctv-kominfogk",
+    "cctv-kp",
+    "cctv-public",
+    "cctv-sleman",
+    "cctv-spl",
+    "cctv-sungai",
+    "cctv-uptmalioboro",
+    "cctv-kota"
+  ],
+  "cctv_portal_aliases": {
+    "cctv-kota": ["cctv.atcs-kota"]
+  },
+  "looker_sources": [
+    {
+      "id": "looker-ikm",
+      "name": "DATAKU-IKM",
+      "url": "https://lookerstudio.google.com/embed/reporting/ce80e599-db1e-4cb5-8c7e-b6bd64e9e81a/page/siyYD"
+    },
+    {
+      "id": "looker-spbe-2023",
+      "name": "Arsitektur dan Peta Rencana SPBE DIY 2023",
+      "url": "https://lookerstudio.google.com/embed/reporting/e71730f5-9086-4f2f-aa9d-e3d57ff7b4d3/page/p_r0amzb8w1c"
+    },
+    {
+      "id": "looker-spbe-2024",
+      "name": "Arsitektur dan Peta Rencana SPBE DIY 2024",
+      "url": "https://lookerstudio.google.com/embed/reporting/ca918e9c-851d-4152-bd28-525bdfedcc17"
+    },
+    {
+      "id": "looker-spbe-2025",
+      "name": "Arsitektur dan Peta Rencana SPBE DIY 2025",
+      "url": "https://lookerstudio.google.com/embed/reporting/4cfe1526-1ac6-403b-8bfd-dcdbdf15c78d/page/X94cD"
+    },
+    {
+      "id": "looker-jsp",
+      "name": "Masterplan Jogja Smart Province",
+      "url": "https://lookerstudio.google.com/embed/reporting/feffa0ab-1727-484e-89bd-979871799ae6/page/p_xm5zudawmd"
+    }
+  ],
   "web_sources": [
     {
       "id": "tableau-pelajar-diy",

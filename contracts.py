@@ -87,6 +87,14 @@ class NormalizedRecord:
         canonical_json(self.raw_rows)  # rejects NaN, infinity and non-JSON values
         canonical_json(self.metadata)
         m = self.metadata
+        portal_fields = {"portal_menu_name", "portal_page_name", "portal_visible",
+                         "source_dashboard_name", "source_chart_name"}
+        if portal_fields.intersection(m):
+            if portal_fields - m.keys() or type(m["portal_visible"]) is not bool:
+                raise ValueError("Missing/invalid portal and source identity metadata")
+            for name in portal_fields - {"portal_visible"}:
+                if not isinstance(m[name], str) or not m[name].strip():
+                    raise ValueError(f"Missing/invalid metadata.{name}")
         for name in ("source_name", "dashboard_name", "chart_name", "extraction_mode"):
             if not isinstance(m[name], str) or not m[name].strip():
                 raise ValueError(f"Missing/invalid metadata.{name}")
@@ -137,7 +145,9 @@ class NormalizedRecord:
             "record_id": self.record_id, "target_id": self.target_id,
             "source_type": self.source_type, "dashboard_id": self.dashboard_id,
             "chart_id": self.chart_id, "rows": sorted(self.raw_rows, key=canonical_json),
-            "metadata": {k: self.metadata.get(k) for k in sorted(SEMANTIC_METADATA)},
+            "metadata": {k: self.metadata.get(k) for k in sorted(
+                SEMANTIC_METADATA | ({"portal_menu_name", "portal_page_name", "portal_visible",
+                                      "source_dashboard_name", "source_chart_name"} & self.metadata.keys()))},
         }))
 
     @property
